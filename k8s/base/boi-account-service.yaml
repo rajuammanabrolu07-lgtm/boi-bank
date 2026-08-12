@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: boi-account-service
+  labels: { app: boi-account-service }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: boi-account-service }
+  template:
+    metadata:
+      labels: { app: boi-account-service }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: boi-account-service
+          image: PLACEHOLDER_IMAGE   # patched per-overlay / by Jenkins
+          ports:
+            - containerPort: 8082
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits:   { cpu: "500m", memory: "512Mi" }
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8082 }
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8082 }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: boi-account-service
+  labels: { app: boi-account-service }
+spec:
+  selector: { app: boi-account-service }
+  ports:
+    - port: 8082
+      targetPort: 8082
+  type: ClusterIP

@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: boi-api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: auth
+          uri: ${AUTH_URI:http://localhost:8081}
+          predicates:
+            - Path=/auth/**
+        - id: accounts
+          uri: ${ACCOUNT_URI:http://localhost:8082}
+          predicates:
+            - Path=/accounts/**
+        - id: transactions
+          uri: ${TRANSACTION_URI:http://localhost:8083}
+          predicates:
+            - Path=/transactions/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,gateway
+  endpoint:
+    health:
+      probes:
+        enabled: true

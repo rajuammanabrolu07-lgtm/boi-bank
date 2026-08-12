@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+  labels: { env: dev, project: boi-bank }
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+  labels: { env: staging, project: boi-bank }
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod
+  labels: { env: prod, project: boi-bank }

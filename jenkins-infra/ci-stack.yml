@@ -1,0 +1,50 @@
+# Runs on the boi-jenkins EC2. Brings up Jenkins + SonarQube + Sonar's Postgres.
+services:
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    user: root                       # lets Jenkins use the host docker socket
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock   # build images via host docker
+    networks: [ci]
+
+  sonar-db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar_pw
+      POSTGRES_DB: sonar
+    volumes:
+      - sonar_db:/var/lib/postgresql/data
+    networks: [ci]
+
+  sonarqube:
+    image: sonarqube:community
+    restart: unless-stopped
+    depends_on: [sonar-db]
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonar-db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar_pw
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonar_data:/opt/sonarqube/data
+      - sonar_extensions:/opt/sonarqube/extensions
+      - sonar_logs:/opt/sonarqube/logs
+    networks: [ci]
+
+volumes:
+  jenkins_home:
+  sonar_db:
+  sonar_data:
+  sonar_extensions:
+  sonar_logs:
+
+networks:
+  ci:

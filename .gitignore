@@ -1,0 +1,25 @@
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+.idea/
+*.iml
+.vscode/
+.DS_Store
+*.log
+.env
+# Terraform local state & downloads
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars.backup
+.terraform.lock.hcl
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl

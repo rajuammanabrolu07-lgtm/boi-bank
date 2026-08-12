@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: boi-api-gateway
+  labels: { app: boi-api-gateway }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: boi-api-gateway }
+  template:
+    metadata:
+      labels: { app: boi-api-gateway }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: boi-api-gateway
+          image: PLACEHOLDER_IMAGE   # patched per-overlay / by Jenkins
+          ports:
+            - containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests: { cpu: "100m", memory: "256Mi" }
+            limits:   { cpu: "500m", memory: "512Mi" }
+          livenessProbe:
+            httpGet: { path: /actuator/health/liveness, port: 8080 }
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8080 }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: boi-api-gateway
+  labels: { app: boi-api-gateway }
+spec:
+  selector: { app: boi-api-gateway }
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP

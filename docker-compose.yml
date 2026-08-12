@@ -1,0 +1,70 @@
+# Local-less full-stack run: `docker compose up --build`
+# Everything talks over the internal 'boi-net' network by service name.
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: boi
+      POSTGRES_PASSWORD: boi_local_pw
+      POSTGRES_DB: boi
+    ports:
+      - "5432:5432"
+    networks: [boi-net]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boi"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  auth-service:
+    build: ./boi-auth-service
+    environment:
+      JWT_SECRET: local-dev-secret-change-me-32bytes-min!!
+    ports:
+      - "8081:8080"
+    networks: [boi-net]
+
+  account-service:
+    build: ./boi-account-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/boi
+      DB_USER: boi
+      DB_PASSWORD: boi_local_pw
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8082:8080"
+    networks: [boi-net]
+
+  transaction-service:
+    build: ./boi-transaction-service
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/boi
+      DB_USER: boi
+      DB_PASSWORD: boi_local_pw
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8083:8080"
+    networks: [boi-net]
+
+  api-gateway:
+    build: ./boi-api-gateway
+    environment:
+      AUTH_URI: http://auth-service:8080
+      ACCOUNT_URI: http://account-service:8080
+      TRANSACTION_URI: http://transaction-service:8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - account-service
+      - transaction-service
+    networks: [boi-net]
+
+networks:
+  boi-net:
+    driver: bridge

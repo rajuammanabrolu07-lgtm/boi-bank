@@ -1,0 +1,21 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: boi-auth-service
+
+jwt:
+  # 32+ char secret. Provided via env / secret store in real envs. This default is for local only.
+  secret: ${JWT_SECRET:local-dev-secret-change-me-32bytes-min!!}
+  expiry-ms: ${JWT_EXPIRY_MS:3600000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
