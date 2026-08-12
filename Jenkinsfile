@@ -52,7 +52,7 @@ pipeline {
       steps {
         withSonarQubeEnv('sonar') {
           sh '''
-            mvn -B sonar:sonar \
+            mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:4.0.0.4121:sonar \
               -Dsonar.projectKey=boi-bank \
               -Dsonar.projectName=boi-bank
           '''
